@@ -8,8 +8,19 @@ builder.Services.AddSwaggerGen();
 // Configure HttpClient for Scryfall API with required headers
 builder.Services.AddHttpClient("Scryfall", client =>
 {
-	client.DefaultRequestHeaders.Add("User-Agent", "MagicTheGatheringAPI/1.0 s.sanazaro91@yahoo.com)");
+	client.DefaultRequestHeaders.Add("User-Agent", "MagicTheGatheringAPI/1.0 test@yahoo.com");
 	client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
+// Configure named CORS policy for your Blazor app
+builder.Services.AddCors(options =>
+{
+	options.AddPolicy("BlazorAppPolicy", policy =>
+	{
+		policy.WithOrigins("https://localhost:7149") // Blazor HTTPS port
+			  .AllowAnyHeader()
+			  .AllowAnyMethod();
+	});
 });
 
 var app = builder.Build();
@@ -22,6 +33,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Use named CORS policy
+app.UseCors("BlazorAppPolicy");
 
 app.UseAuthorization();
 

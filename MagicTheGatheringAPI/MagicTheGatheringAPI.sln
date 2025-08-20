@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35506.116 d17.12
+VisualStudioVersion = 17.12.35506.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicTheGatheringAPI", "MagicTheGatheringAPI\MagicTheGatheringAPI.csproj", "{FB8C21F6-192B-4FF5-A7AE-8B525D1A6EA2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicTheGatheringBlazor", "MagicTheGatheringBlazor\MagicTheGatheringBlazor.csproj", "{2BECB824-F6BF-4639-AC9E-590D735A952D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicTheGathering.Shared", "MagicTheGathering.Shared\MagicTheGathering.Shared.csproj", "{6DA0DC9F-3D6B-41C2-A215-5EF08DA490D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{FB8C21F6-192B-4FF5-A7AE-8B525D1A6EA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB8C21F6-192B-4FF5-A7AE-8B525D1A6EA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB8C21F6-192B-4FF5-A7AE-8B525D1A6EA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2BECB824-F6BF-4639-AC9E-590D735A952D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2BECB824-F6BF-4639-AC9E-590D735A952D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2BECB824-F6BF-4639-AC9E-590D735A952D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2BECB824-F6BF-4639-AC9E-590D735A952D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DA0DC9F-3D6B-41C2-A215-5EF08DA490D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DA0DC9F-3D6B-41C2-A215-5EF08DA490D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DA0DC9F-3D6B-41C2-A215-5EF08DA490D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DA0DC9F-3D6B-41C2-A215-5EF08DA490D8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

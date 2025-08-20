@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MagicTheGathering.Shared.Models;
+using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -19,7 +20,7 @@ namespace MagicTheGatheringAPI.Controllers
 
 			// Required headers for Scryfall
 			_client.DefaultRequestHeaders.Clear();
-			_client.DefaultRequestHeaders.Add("User-Agent", "MagicTheGatheringAPI/1.0 (s.sanazaro91@yahoo.com)");
+			_client.DefaultRequestHeaders.Add("User-Agent", "MagicTheGatheringAPI/1.0 test@yahoo.com)");
 			_client.DefaultRequestHeaders.Add("Accept", "application/json");
 
 			_jsonOptions = new JsonSerializerOptions
@@ -29,8 +30,8 @@ namespace MagicTheGatheringAPI.Controllers
 		}
 
 		// GET /CardController/card/{cardId}
-		[HttpGet("card/{cardId:guid}")]
-		public async Task<ActionResult<Card>> GetCardById(Guid cardId)
+		[HttpGet("card/{cardId}")]
+		public async Task<ActionResult<Card>> GetCardById(string cardId)
 		{
 			var response = await _client.GetAsync($"https://api.scryfall.com/cards/{cardId}");
 
@@ -42,6 +43,7 @@ namespace MagicTheGatheringAPI.Controllers
 
 			return card != null ? Ok(card) : BadRequest("Unable to parse card data.");
 		}
+
 
 		// GET /CardController/name/{cardName}
 		[HttpGet("name/{cardName}")]

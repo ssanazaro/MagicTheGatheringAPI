@@ -1,0 +1,70 @@
+﻿@page "/cardlookup"
+@using MagicTheGathering.Shared.Models
+@inject HttpClient Http
+
+<h3>Card Lookup</h3>
+
+<input @bind="cardName" placeholder="Enter card name" />
+<button @onclick="GetCard">Search</button>
+
+@if (card != null)
+{
+    <div>
+        @if (card.ImageUri?.Normal != null)
+        {
+            <img src="@card.ImageUri.Normal" alt="@card.Name" />
+        }
+        <p>@card.OracleText</p>
+        <p>Power/Toughness: @card.Power / @card.Toughness</p>
+        <p>Price (USD): @card.Price?.Usd</p>
+    </div>
+}
+else if (isLoading)
+{
+    <p>Loading...</p>
+}
+else if (hasError)
+{
+    <p style="color:red">Card not found or error occurred.</p>
+}
+
+@code {
+    private string cardName = string.Empty;
+    private Card? card;
+    private bool isLoading = false;
+    private bool hasError = false;
+
+    private async Task GetCard()
+    {
+        if (string.IsNullOrWhiteSpace(cardName))
+            return;
+
+        isLoading = true;
+        hasError = false;
+        card = null;
+
+        try
+        {
+            // Step 1: Get by name (basic info, includes Id as string)
+            var basicCard = await Http.GetFromJsonAsync<Card>(
+                $"Card/name/{Uri.EscapeDataString(cardName)}");
+
+            if (basicCard == null || string.IsNullOrWhiteSpace(basicCard.Id))
+            {
+                hasError = true;
+                return;
+            }
+
+            // Step 2: Use Id to get full details
+            card = await Http.GetFromJsonAsync<Card>($"Card/card/{basicCard.Id}");
+        }
+        catch (Exception)
+        {
+            hasError = true;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
