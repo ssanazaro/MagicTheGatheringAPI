@@ -1,9 +1,6 @@
 ﻿using MagicTheGathering.Shared.Models;
+using MagicTheGatheringAPI.Managers;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace MagicTheGatheringAPI.Controllers
 {
@@ -11,53 +8,68 @@ namespace MagicTheGatheringAPI.Controllers
 	[Route("[controller]")]
 	public class CardController : ControllerBase
 	{
-		private readonly HttpClient _client;
-		private readonly JsonSerializerOptions _jsonOptions;
+		private readonly IScryfallManager _scryfallManager;
 
-		public CardController(HttpClient client)
+		public CardController(IScryfallManager scryfallManager)
 		{
-			_client = client;
-
-			// Required headers for Scryfall
-			_client.DefaultRequestHeaders.Clear();
-			_client.DefaultRequestHeaders.Add("User-Agent", "MagicTheGatheringAPI/1.0 test@yahoo.com)");
-			_client.DefaultRequestHeaders.Add("Accept", "application/json");
-
-			_jsonOptions = new JsonSerializerOptions
-			{
-				PropertyNameCaseInsensitive = true
-			};
+			_scryfallManager = scryfallManager;
 		}
 
 		// GET /CardController/card/{cardId}
 		[HttpGet("card/{cardId}")]
 		public async Task<ActionResult<Card>> GetCardById(string cardId)
 		{
-			var response = await _client.GetAsync($"https://api.scryfall.com/cards/{cardId}");
-
-			if (!response.IsSuccessStatusCode)
-				return NotFound();
-
-			var stream = await response.Content.ReadAsStreamAsync();
-			var card = await JsonSerializer.DeserializeAsync<Card>(stream, _jsonOptions);
-
-			return card != null ? Ok(card) : BadRequest("Unable to parse card data.");
+			var card = await _scryfallManager.GetCardById(cardId);
+			if (card == null) return NotFound();
+			return Ok(card);
 		}
-
 
 		// GET /CardController/name/{cardName}
 		[HttpGet("name/{cardName}")]
 		public async Task<ActionResult<Card>> GetCardByName(string cardName)
 		{
-			var response = await _client.GetAsync($"https://api.scryfall.com/cards/named?fuzzy={cardName}");
-
-			if (!response.IsSuccessStatusCode)
-				return NotFound();
-
-			var stream = await response.Content.ReadAsStreamAsync();
-			var card = await JsonSerializer.DeserializeAsync<Card>(stream, _jsonOptions);
-
-			return card != null ? Ok(card) : BadRequest("Unable to parse card data.");
+			var card = await _scryfallManager.GetCardByName(cardName);
+			if (card == null) return NotFound();
+			return Ok(card);
 		}
+
+		// POST /CardController/batch-names
+		// Body: ["Black Lotus", "Counterspell", "Llanowar Elves"]
+		[HttpPost("batch-names")]
+		public async Task<ActionResult<List<Card>>> GetCardsByNames([FromBody] List<string> names)
+		{
+			if (names == null || names.Count == 0)
+				return BadRequest("No card names provided.");
+
+			var cards = await _scryfallManager.GetCardsByNames(names);
+			return Ok(cards);
+		}
+
+		// POST /CardController/deck
+		// Body: { "cards": ["Black Lotus", "Counterspell", ...] }
+		[HttpPost("deck")]
+		public async Task<ActionResult<List<Card>>> LoadDeck([FromBody] DeckRequest deckRequest)
+		{
+			if (deckRequest?.Cards == null || deckRequest.Cards.Count == 0)
+				return BadRequest("No cards in deck.");
+
+			var cards = await _scryfallManager.GetCardsByNames(deckRequest.Cards);
+			return Ok(cards);
+		}
+
+		// GET /CardController/name/{cardName}
+		[HttpGet("search")]
+		public async Task<ActionResult<Card>> GetCardsByCustomSearch(string format, string color)
+		{
+			var card = await _scryfallManager.GetCardsByCustomeSearch(format, color);
+			if (card == null) return NotFound();
+			return Ok(card);
+		}
+	}
+
+	// DTO for deck loading
+	public class DeckRequest
+	{
+		public List<string> Cards { get; set; } = new();
 	}
 }

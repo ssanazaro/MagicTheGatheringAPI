@@ -1,3 +1,6 @@
+using MagicTheGatheringAPI.Managers;
+using MagicTheGatheringAPI.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,12 +8,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure HttpClient for Scryfall API with required headers
-builder.Services.AddHttpClient("Scryfall", client =>
+// Register the HttpClient for ScryfallService
+builder.Services.AddHttpClient<IScryfallService, ScryfallService>(client =>
 {
-	client.DefaultRequestHeaders.Add("User-Agent", "MagicTheGatheringAPI/1.0 test@yahoo.com");
+	client.BaseAddress = new Uri("https://api.scryfall.com/");
+	client.DefaultRequestHeaders.Add("User-Agent", "MagicTheGatheringAPI/1.0-s.s.sanazaro91");
 	client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
+
+
+// Register the Scryfall manager
+builder.Services.AddScoped<IScryfallManager, ScryfallManager>();
 
 // Configure named CORS policy for your Blazor app
 builder.Services.AddCors(options =>

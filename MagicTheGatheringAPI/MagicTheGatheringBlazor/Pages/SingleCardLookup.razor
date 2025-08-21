@@ -1,43 +1,10 @@
-﻿@page "/card-lookup"
+﻿@page "/single-card-lookup"
 @using MagicTheGathering.Shared.Models
 @inject HttpClient Http
 
 <div style="display:flex; flex-direction:column; align-items:center; text-align:center; margin-top:30px;">
 
-    <h3>Card lookup</h3>
-
-    <select @bind="formatType">
-        <option value="name">Standard</option>
-        <option value="name">Future</option>
-        <option value="name">Historic</option>
-        <option value="name">Gladiator</option>
-        <option value="name">Pioneer</option>
-        <option value="name">Explorer</option>
-        <option value="name">Modern</option>
-        <option value="name">Legacy</option>
-        <option value="name">Pauper</option>
-        <option value="name">Vintage</option>
-        <option value="name">Penny</option>
-        <option value="name">Commander</option>
-        <option value="name">Oathbreaker</option>
-        <option value="name">StandardBrawl</option>
-        <option value="name">Brawl</option>
-        <option value="name">Alchemy</option>
-        <option value="name">PauperCommander</option>
-        <option value="name">Duel</option>
-        <option value="name">Oldschool</option>
-        <option value="name">Premodern</option>
-        <option value="name">Predh</option>
-    </select>
-
-    <select @bind="colorType">
-        <option value="name">Black</option>
-        <option value="name">Blue</option>
-        <option value="name">Green</option>
-        <option value="name">Red</option>
-        <option value="name">White</option>
-    </select>
-
+    <h3>Single Card lookup</h3>
     <input @bind="cardName" placeholder="Enter search term" style="margin-top:10px;" />
     <button @onclick="OnSearch" style="margin-top:10px;">Search</button>
 
@@ -102,9 +69,9 @@ else if (hasError)
 
     private async Task OnSearch()
     {
-            await GetCard();
+        await GetCard();
     }
-    
+
     private async Task GetCard()
     {
         if (string.IsNullOrWhiteSpace(cardName))
