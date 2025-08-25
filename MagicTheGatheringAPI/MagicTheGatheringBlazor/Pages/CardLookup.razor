@@ -3,86 +3,27 @@
 @inject HttpClient Http
 
 <div style="display:flex; flex-direction:column; align-items:center; text-align:center; margin-top:30px;">
-
     <h3>Card lookup</h3>
 
     <select @bind="formatType">
-        <option value="name">Standard</option>
-        <option value="name">Future</option>
-        <option value="name">Historic</option>
-        <option value="name">Gladiator</option>
-        <option value="name">Pioneer</option>
-        <option value="name">Explorer</option>
-        <option value="name">Modern</option>
-        <option value="name">Legacy</option>
-        <option value="name">Pauper</option>
-        <option value="name">Vintage</option>
-        <option value="name">Penny</option>
-        <option value="name">Commander</option>
-        <option value="name">Oathbreaker</option>
-        <option value="name">StandardBrawl</option>
-        <option value="name">Brawl</option>
-        <option value="name">Alchemy</option>
-        <option value="name">PauperCommander</option>
-        <option value="name">Duel</option>
-        <option value="name">Oldschool</option>
-        <option value="name">Premodern</option>
-        <option value="name">Predh</option>
+        @foreach (var format in CardOptions.Formats)
+        {
+            <option value="@format.Value">@format.Display</option>
+        }
     </select>
+
 
     <select @bind="colorType">
-        <option value="name">Black</option>
-        <option value="name">Blue</option>
-        <option value="name">Green</option>
-        <option value="name">Red</option>
-        <option value="name">White</option>
+        @foreach (var color in CardOptions.Colors)
+        {
+            <option value="@color.Value">@color.Display</option>
+        }
     </select>
 
-    <input @bind="cardName" placeholder="Enter search term" style="margin-top:10px;" />
-    <button @onclick="OnSearch" style="margin-top:10px;">Search</button>
-
+    <button @onclick="() => OnSearch(formatType, colorType)" style="margin-top:10px;">Search</button>
 </div>
 
-@if (card != null)
-{
-    <div style="display:flex; flex-direction:row; align-items:flex-start; margin-top:30px;">
-
-        <!-- Left: Card Image -->
-        <div>
-            @if (card.ImageUri?.Normal != null)
-            {
-                <img src="@card.ImageUri.Normal" alt="@card.Name" style="max-width:300px; height:auto;" />
-            }
-        </div>
-
-        <!-- Right: Keywords + Legalities -->
-        <div style="margin-left:20px;">
-            <h4>Keywords:</h4>
-            <ul>
-                @foreach (var keyword in card.Keywords)
-                {
-                    <li>@keyword</li>
-                }
-            </ul>
-
-            <h4>Legalities</h4>
-            <ul>
-                @foreach (var legality in card.Legality.GetType().GetProperties())
-                {
-                    var format = legality.Name;
-                    var value = legality.GetValue(card.Legality)?.ToString();
-
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        <li>@format: @value</li>
-                    }
-                }
-            </ul>
-        </div>
-    </div>
-
-}
-else if (isLoading)
+@if (isLoading)
 {
     <p>Loading...</p>
 }
@@ -90,56 +31,110 @@ else if (hasError)
 {
     <p style="color:red">Card not found or error occurred.</p>
 }
+else if (cards?.Count > 0)
+{
+    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:20px;">
+        @foreach (var c in cards)
+        {
+            <img src="@(c?.ImageUri?.Normal ?? "images/placeholder.png")"
+                 alt="@(c?.Name ?? "Unknown")"
+                 @onclick="() => ShowZoom(c?.ImageUri?.Normal, c?.Name)"
+                 style="cursor:pointer; width:223px; height:310px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.3);" />
+        }
+    </div>
+
+    @if (hasMore)
+    {
+        <button @onclick="LoadMore" style="margin-top:20px;">Load More</button>
+    }
+}
+
+@if (zoomedCardUrl != null)
+{
+    <div style="position:fixed; top:0; left:0; width:100%; height:100%;
+                background:rgba(0,0,0,0.7); display:flex; justify-content:center; align-items:center; z-index:1000;"
+         @onclick="CloseZoom">
+        <div style="position:relative;">
+            <img src="@zoomedCardUrl" alt="@zoomedCardName"
+                 style="max-width:90vw; max-height:90vh; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.5);" />
+            <button @onclick="CloseZoom"
+                    style="position:absolute; top:-10px; right:-10px; background:red; color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer;">
+                ✕
+            </button>
+        </div>
+    </div>
+}
 
 @code {
-    private string cardName = string.Empty;
-    private string formatType = "format";
-    private string colorType = "color";
+    private string formatType = string.Empty;
+    private string colorType = string.Empty;
 
-    private Card? card;
+    private List<Card> cards = new();
     private bool isLoading = false;
     private bool hasError = false;
 
-    private async Task OnSearch()
+    private bool hasMore = false;
+    private int currentPage = 1;
+
+    private string? zoomedCardUrl = null;
+    private string? zoomedCardName = null;
+
+    private async Task OnSearch(string format, string color)
     {
-            await GetCard();
-    }
-    
-    private async Task GetCard()
-    {
-        if (string.IsNullOrWhiteSpace(cardName))
+        if (string.IsNullOrWhiteSpace(format) || string.IsNullOrWhiteSpace(color))
             return;
 
         isLoading = true;
         hasError = false;
-        card = null;
+        cards = new();
+        currentPage = 1;
 
+        await LoadCards(format, color, currentPage);
+    }
+
+    private async Task LoadCards(string format, string color, int page)
+    {
         try
         {
-            // Step 1: Get basic card info by name
-            var basicCard = await Http.GetFromJsonAsync<Card>(
-                $"Card/name/{Uri.EscapeDataString(cardName)}");
+            var result = await Http.GetFromJsonAsync<PagedResult<Card>>(
+                $"Card/search/{format}/{color}?page={page}");
 
-            if (basicCard == null || string.IsNullOrWhiteSpace(basicCard.Id))
+            if (result == null || result.Data == null || result.Data.Count == 0)
             {
                 hasError = true;
+                hasMore = false;
                 return;
             }
 
-            // Respect Scryfall's rate limit (50–100 ms delay)
-            await Task.Delay(100);
-
-            // Step 2: Use Id to get full card details
-            card = await Http.GetFromJsonAsync<Card>(
-                $"Card/card/{basicCard.Id}");
+            cards.AddRange(result.Data.Where(c => c?.ImageUri?.Normal != null));
+            hasMore = result.HasMore;
+            currentPage++;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             hasError = true;
+            Console.WriteLine(ex); // or Debug.WriteLine
         }
         finally
         {
             isLoading = false;
         }
+    }
+
+    private async Task LoadMore()
+    {
+        await LoadCards(formatType, colorType, currentPage);
+    }
+
+    private void ShowZoom(string? url, string? name)
+    {
+        zoomedCardUrl = url;
+        zoomedCardName = name;
+    }
+
+    private void CloseZoom()
+    {
+        zoomedCardUrl = null;
+        zoomedCardName = null;
     }
 }

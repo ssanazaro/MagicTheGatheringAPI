@@ -6,6 +6,6 @@ namespace MagicTheGatheringAPI.Services
 	{
 		Task<Card?> GetCardByName(string name);
 		Task<Card?> GetCardById(string id);
-		Task<List<Card?>> GetCardsByCustomSearch(string format, string color);
+		Task<PagedResult<Card>> GetCardsByCustomSearch(string format, string color);
 	}
 }

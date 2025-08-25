@@ -76,13 +76,21 @@ public class ScryfallService : IScryfallService
 	public Task<Card?> GetCardById(string id)
 		=> GetFromScryfall<Card>($"cards/{id}");
 
-	public async Task<List<Card>> GetCardsByCustomSearch(string format, string color)
+	public async Task<PagedResult<Card>> GetCardsByCustomSearch(string format, string color)
 	{
 		var response = await GetFromScryfall<ScryfallListResponse<Card>>(
 			$"cards/search?q=legal:{format}+color:{color}"
 		);
 
-		return response?.Data ?? new List<Card>();
+		return response != null
+	? new PagedResult<Card>
+	{
+		Data = response.Data,
+		HasMore = response.HasMore,
+		NextPageUrl = response.NextPage
+	}
+	: new PagedResult<Card>();
+
 	}
 
 }

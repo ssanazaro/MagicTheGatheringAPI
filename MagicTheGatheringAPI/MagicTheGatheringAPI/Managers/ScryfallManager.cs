@@ -44,7 +44,7 @@ public class ScryfallManager : IScryfallManager
 		return cards;
 	}
 
-	public Task<List<Card>> GetCardsByCustomeSearch(string format, string color)
+	public Task<PagedResult<Card>> GetCardsByCustomeSearch(string format, string color)
 	{
 		var cards = _scryfallService.GetCardsByCustomSearch(format, color);
 		return cards;

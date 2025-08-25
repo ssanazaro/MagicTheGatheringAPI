@@ -7,6 +7,6 @@ namespace MagicTheGatheringAPI.Managers
 		Task<Card?> GetCardByName(string name);
 		Task<Card?> GetCardById(string id);
 		Task<List<Card>> GetCardsByNames(IEnumerable<string> names);
-		Task<List<Card>> GetCardsByCustomeSearch(string format, string color);
+		Task<PagedResult<Card>> GetCardsByCustomeSearch(string format, string color);
 	}
 }

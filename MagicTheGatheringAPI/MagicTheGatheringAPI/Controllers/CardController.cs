@@ -57,14 +57,15 @@ namespace MagicTheGatheringAPI.Controllers
 			return Ok(cards);
 		}
 
-		// GET /CardController/name/{cardName}
-		[HttpGet("search")]
-		public async Task<ActionResult<Card>> GetCardsByCustomSearch(string format, string color)
+		// GET /CardController/search/{format}/{color}
+		[HttpGet("search/{format}/{color}")]
+		public async Task<ActionResult<PagedResult<Card>>> GetCardsByCustomSearch(string format, string color)
 		{
-			var card = await _scryfallManager.GetCardsByCustomeSearch(format, color);
-			if (card == null) return NotFound();
-			return Ok(card);
+			var cards = await _scryfallManager.GetCardsByCustomeSearch(format, color);
+			if (cards == null) return NotFound();
+			return Ok(cards);
 		}
+
 	}
 
 	// DTO for deck loading
